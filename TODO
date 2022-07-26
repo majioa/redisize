@@ -1,0 +1,6 @@
+adapters
+# add: sucker_punch
+   # add ActiveJob::Base
+   # add: DelayedJobs
+   # add: dynflow
+
