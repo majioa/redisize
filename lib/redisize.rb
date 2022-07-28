@@ -80,7 +80,7 @@ module Redisize
       end
 
       def enqueue method, *args
-         adapter.enqueue(method, *args)
+         adapter.enqueue(method.to_s, *args)
       end
 
       def filtered_for attrs, klass
