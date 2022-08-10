@@ -1,6 +1,22 @@
 require "redisize/version"
 
 module Redisize
+   # autoloading is required for the proper module loading inside the sidekiq
+   module Adapter
+      autoload :Sidekiq, File.join(__dir__, 'redisize/adapter/sidekiq.rb')
+      autoload :Resque, File.join(__dir__, 'redisize/adapter/resque.rb')
+      autoload :Inline, File.join(__dir__, 'redisize/adapter/inline.rb')
+   end
+   module Cache
+      autoload :Rails, File.join(__dir__, 'redisize/cache/rails.rb')
+   end
+   module Log
+      autoload :Rails, File.join(__dir__, 'redisize/log/rails.rb')
+   end
+   module ORM
+      autoload :ActiveRecord, File.join(__dir__, 'redisize/orm/active_record.rb')
+   end
+
    class << self
       attr_writer :adapter
 
