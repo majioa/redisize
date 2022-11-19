@@ -291,7 +291,13 @@ module Redisize
 
    module ClassMethods
       def polymorphic_base_name
-         (base_class.to_s.split("::")[0...-1] + [polymorphic_name]).join("::")
+         base_name = base_class.to_s
+
+         if base_name == polymorphic_name
+            polymorphic_name
+         else
+            (base_class.to_s.split("::")[0...-1] + [polymorphic_name]).join("::")
+         end
       end
 
       # self -> model class
