@@ -133,7 +133,7 @@ module Redisize
       end
 
       def key_name_for model_name, attrs, type = "meta"
-         primary_key = model_name.constantize.primary_key
+         primary_key = model_name.constantize.primary_key || attrs.keys.first
          [type, model_name, primary_key, attrs[primary_key].to_s]
       end
 
@@ -244,7 +244,7 @@ module Redisize
    # self -> model instance
    def redisize_json scheme, &block
       primary_key = self.class.primary_key
-      key = ["json", self.class.polymorphic_name, primary_key, self[primary_key].to_s, scheme]
+      key = ["json", self.class.polymorphic_base_name, primary_key, self[primary_key].to_s, scheme]
 
       # binding.pry
       redisize_cache_fetch(key, expires_in: 1.week) do
@@ -259,7 +259,7 @@ module Redisize
    # self -> model instance
    def deredisize_json scheme, &block
       primary_key = self.class.primary_key
-      key = ["json", self.class.polymorphic_name, primary_key, self[primary_key], scheme]
+      key = ["json", self.class.polymorphic_base_name, primary_key, self[primary_key], scheme]
 
       # binding.pry
       Redisize.enqueue(:deredisize_json_metas, key)
@@ -267,13 +267,13 @@ module Redisize
 
    # self -> model instance
    def deredisize_model
-      Redisize.enqueue(:deredisize_model_metas, self.class.polymorphic_name)
+      Redisize.enqueue(:deredisize_model_metas, self.class.polymorphic_base_name)
    end
 
    # self -> model instance
    def reredisize_instance
       attrs = Redisize.as_json_for(self)
-      key = Redisize.key_name_for(self.class.polymorphic_name, attrs, "instance")
+      key = Redisize.key_name_for(self.class.polymorphic_base_name, attrs, "instance")
 
       # binding.pry
       redisize_cache_write(key, self, expires_in: 1000.years)
@@ -283,13 +283,17 @@ module Redisize
    # self -> model instance
    def deredisize_instance
       attrs = Redisize.as_json_for(self)
-      key = Redisize.key_name_for(self.class.polymorphic_name, attrs, "instance")
+      key = Redisize.key_name_for(self.class.polymorphic_base_name, attrs, "instance")
 
       # binding.pry
       Redisize.enqueue(:deredisize_instance_metas, key)
    end
 
    module ClassMethods
+      def polymorphic_base_name
+         (base_class.to_s.split("::")[0...-1] + [polymorphic_name]).join("::")
+      end
+
       # self -> model class
       def redisize_sql &block
          key = ["sql", self.name, self.primary_key, self.all.to_sql]
@@ -308,7 +312,7 @@ module Redisize
       def redisize_model value, options = {}, &block
          primary_key = options.fetch(:by_key, self.primary_key).to_s
          key = ["instance", name, primary_key, value]
-         metakey = ["meta", self.class.polymorphic_name, primary_key, value]
+         metakey = ["meta", self.class.polymorphic_base_name, primary_key, value]
 
          # binding.pry
          redisize_cache_fetch(key, expires_in: 1.week) do
