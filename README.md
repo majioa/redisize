@@ -1,8 +1,6 @@
 # Redisize
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/redisize`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+The gem allows to use asynchonous way to cache or just store in redis or any other cache mechanism. For asynchronous caching the Resque or Sidekiq adapters can be used, for synchronous - inline.
 
 ## Installation
 
@@ -22,7 +20,54 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Initialization
+Usually adapter can'be defined automatically of presently installed gems. Curretly are supported sidekiq and resque gems to ansyncronous caching (redisizing). If no such gems are installed, the synchronous **inline** adapter is used. You can redefine manually an adapter as follows:
+
+```ruby
+Redisize.adapter_kind = :inline
+```
+
+Other values are ```:resque```, and ```:sidekiq```.
+And then to use the gem just define in the target object:
+
+```ruby
+include(Redisize)
+```
+
+### In Rails
+
+To use the cache feature with Rails (and ActiveRecord) you have just to wrap a method accessing DB either a record or a relation to a block like this. So to redisize a record value as a json use the follwing:
+
+```ruby
+redisize_json(attrs) do
+   # <JSON generation code>
+   # generate_json(attrs, options)
+end
+```
+
+to drop a JSON value use:
+
+```ruby
+deredisize_json(attrs)
+```
+
+to redisize an SQL:
+
+```ruby
+redisize_sql do
+   relation.as_json(context)
+end
+```
+
+to redisize an record instance use:
+
+```ruby
+redisize_model(slug, by_key: :slug) do
+   self.joins(:slug).where(slugs: {text: slug}).first
+end
+```
+
+Next calls to the block will return a cached value. Updating the record will drop cache for sql or record itself.
 
 ## Development
 
@@ -32,7 +77,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/redisize. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/redisize/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/majioa/redisize. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/majioa/redisize/blob/master/CODE_OF_CONDUCT.md).
 
 
 ## License
@@ -41,4 +86,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Redisize project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/redisize/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Redisize project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/majioa/redisize/blob/master/CODE_OF_CONDUCT.md).
