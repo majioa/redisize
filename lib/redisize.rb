@@ -318,7 +318,7 @@ module Redisize
       def redisize_model value, options = {}, &block
          primary_key = options.fetch(:by_key, self.primary_key).to_s
          key = ["instance", name, primary_key, value]
-         metakey = ["meta", self.class.polymorphic_base_name, primary_key, value]
+         metakey = ["meta", self.polymorphic_base_name, primary_key, value]
 
          # binding.pry
          redisize_cache_fetch(key, expires_in: 1.week) do
