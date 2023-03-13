@@ -175,10 +175,6 @@ module Redisize
          end
       end
 
-      def as_json_for instance
-         instance.attribute_names.map {|x|[x, instance.read_attribute(x)] }.to_h
-      end
-
       ### internal methods for enqueued proceeds
       #
       def redisize_model_metas metakey, model_name, attrs, key
@@ -272,7 +268,7 @@ module Redisize
 
    # self -> model instance
    def reredisize_instance
-      attrs = Redisize.as_json_for(self)
+      attrs = self.as_json
       key = Redisize.key_name_for(self.class.polymorphic_base_name, attrs, "instance")
 
       # binding.pry
@@ -282,7 +278,7 @@ module Redisize
 
    # self -> model instance
    def deredisize_instance
-      attrs = Redisize.as_json_for(self)
+      attrs = self.as_json
       key = Redisize.key_name_for(self.class.polymorphic_base_name, attrs, "instance")
 
       # binding.pry
@@ -323,7 +319,7 @@ module Redisize
          # binding.pry
          redisize_cache_fetch(key, expires_in: 1.week) do
             if result = block.call
-               Redisize.enqueue(:redisize_model_metas, metakey, self.name, Redisize.as_json_for(result), key)
+               Redisize.enqueue(:redisize_model_metas, metakey, self.name, result.as_json, key)
             end
 
             result
